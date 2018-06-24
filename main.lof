@@ -1,0 +1,14 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\babel@toc {english}{}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Log loss plot when matching full audio to full subtitles\relax }}{2}{figure.caption.17}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Steps of MFCC Feature Extraction \cite {mfcc_steps}\relax }}{6}{figure.caption.21}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Filtering with Mel Filterbanks \cite {practical_cryptography}\relax }}{7}{figure.caption.30}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces The MFCCs extracted from a Game of Thrones episode. Bluish shades indicate subtitles are absent, pinkish shades indicate they are present. Feature window index is used as a proxy for time.\relax }}{8}{figure.caption.33}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Convolutions in 1d \cite {catalunya_2017}\relax }}{11}{figure.caption.39}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Validated on a separate episode of The Walking Dead\relax }}{13}{figure.caption.46}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Model Architecture\relax }}{14}{figure.caption.41}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
