@@ -1,0 +1,13 @@
+*.bcf
+*.bbl
+*.DS_Store
+*.blg
+*.lof
+*.log
+*.lot
+*.out
+*.xml
+*.cls
+*.toc
+*.gz
+*.aux

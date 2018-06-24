@@ -18,10 +18,8 @@
 \section{Audio Format}
 It was deemed most appropriate to use the compressed MP3 extracted from the MPEG-4 video file for a number of reasons. Although using the uncompressed wav form would present a more faithful reproduction of the audio, and possibly provide more data to train on, the additional complexity far outweighed any possible gains. The MFCC extraction is very sensitive to the [something] and testing on the wav file proved prohibitively long. The space requirements were far larger and approached the file size of the compressed video and audio combined. Furthermore, since the aim is to identify human speech, the lossy mpeg compression regime is explicitly designed to mimic the constraints on human hearing using psychoacoustic modelling, whereby imperceptible frequency ranges, signals with subthreshold amplitudes and frequencies masked by other more dominant frequencies are excluded (Perceptual Coding of Digital Audio), among many other filtering techniques. This process is well-suited to feature extraction for ASR as human speech is naturally adapted to be comprehended by human ears, and vice versa. 
 
-The bandwidth of human speech is 80-260hz (2 references from wikipedia)
-(Titze, I.R. (1994). Principles of Voice Production, Prentice Hall (currently published by NCVS.org) (pp. 188), ISBN 978-0-13-717893-3. 
-Baken, R. J. (1987). Clinical Measurement of Speech and Voice. London: Taylor and Francis Ltd. (pp. 177), ISBN 1-5659-3869-0.)
-The sample rate was chosen to be 16kHz in order to avoid aliasing of the signal due to sample rate being below the Nyquist rate, although the nyquist rate is actually 520hz… telephones sample at 8kHz, so above this is better. (http://www.dspguide.com/ch22/3.htm). The nyquist criterion defines the sample rate necessary to avoid aliasing, where the sample rate frequency is insufficient to capture the full details of the waveform, to be: fs > 2B (sampling frequency greater than twice the bandwidth). 
+The  spoken  voice  frequency  lies between  300  to  3400  Hertz\cite{Sandanalakshmi} and so telephones sample at 8kHz in order to satisfy the nyquist criterion which defines the sample rate necessary to avoid aliasing, where the sample rate frequency is insufficient to capture the full details of the waveform, to be: $f_{s} > 2B$ (sampling frequency greater than twice the bandwidth). 
+The sample rate was chosen to be 16kHz in order to avoid this phenomenon, and since the files are compressed the memory requirements are not excessive.
 
 %----------------------------------------------------------------------------------------
 
@@ -36,8 +34,8 @@ This technique also applies pschoacoustic modelling to the signal by applying a 
 	\label{mfcc}
 \end{figure}
 
-\subsection{Frame signal into short frames}]
-The signal is framed into overlapping frames in order for the frequency analysis to be performed. This is assumes that audio spectra are effectively constant over short time frames (typically 20-30ms). The windows are overlapping so that continual frequency features are captured...
+\subsection{Frame signal into short frames}
+The signal is framed into overlapping frames in order for the frequency analysis to be performed. This is assumes that audio spectra are effectively constant over short time frames (typically 20-30ms, ). The windows are overlapping so that continual frequency features are captured...
 
 \subsection{Pre-emphasis}
 There is a preemphasis applied, where for each value in the frequency domain a high-pass filter is applied:
@@ -97,8 +95,8 @@ The MFCC’s provide the descriptive variables upon which to make predictions, a
 	\item Times are converted into seconds from start.
 	\item The time at which the last subtitle disappears from the screen is used to determine the length in seconds that subtitles are present. Subtitles need only be synchronised when there are actually subtitles present.
 	\item The number of frames required is determined by dividing the length in seconds by the frame step (10ms) (the frame length is 25ms, but these are overlapping).
-	\item An empty array pb\_array is generated with columns for an index, start time and binary subtitle value to indicate presence of subtitles. It is of equal length to the number of frames required.
-	\item The 2 arrays, pb\_array and subs\_array, are parsed concurrently, with the frame times of pb\_array checked to see if they lie within a times entry.
+	\item An array of zeros pb\_array is generated with columns for an index, start time and binary subtitle value to indicate presence of subtitles. It is of equal length to the number of frames required.
+	\item The 2 arrays, pb\_array and subs\_array, are parsed concurrently, with the frame times of pb\_array checked to see if they lie within a times entry, and the value changed to 1 from 0 if true.
 \end{itemize}
 
 \subsection{Pseudocode}
@@ -132,6 +130,8 @@ The MFCC’s provide the descriptive variables upon which to make predictions, a
 		\EndProcedure
 	\end{algorithmic}
 \end{algorithm}
+
+This method was evaluated with 5 trial runs on 59:18 minutes of audio, equating to 355,830 MFCC samples and took on average 12.03 seconds. This is a little longer than would be desired in practice but is not excessively long. This method is efficient in that it parses over the arrays only once.
 
 This outputs a vector with length equal to number of MFCC frames, filled with binary values indicating presence of subtitles. This provides the objective feature to predict.
 

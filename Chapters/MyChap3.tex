@@ -43,7 +43,7 @@ epochs=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 50, 100],
 optimizer=['SGD', 'RMSprop', 'Adagrad', 'Adadelta', 'Adam', 'Adamax', 'Nadam'],
 In so doing, the best performing parameters were identified to be:
 optimiser = Nadam, batch size = 32. [However, due to the random initialisation process this produced different results every time...]
-\section{Training Set Size}
+\section{Training/Test Set Size}
 \begin{wrapfigure}{l}{0.3\textwidth} 
 	\includegraphics[width=0.3\textwidth]{train_val_loss_run2}
 	\caption{Validated on a separate episode of The Walking Dead}
@@ -53,3 +53,26 @@ In order to identify the size of training set required, the optimised learner wa
 Interestingly the validation loss is less than the training loss..
 The validation results gave [0.81, 0.50] [accuracy, loss], which emulated closely the training results. This indicated that an hour of audio should be sufficient, but to ensure success, a full feature film was used for training.
 
+\section{Test Time}
+Prior to tuning, the model achieved respectable results Validation Loss: 0.47
+Validation Accuracy: 0.76
+Time:  $\sim103$ seconds
+
+After tuning, these results were improved slightly:
+Validation Loss: 0.48
+Validation Accuracy: 0.81
+
+The model was then evaluated on a full feature film, Goldstone and produced similar results:
+
+Validation Loss: 0.49
+Validation Accuracy: 0.84
+Time: $\sim259$ seconds
+
+However, there is some debate over the position of the batch normalisation layer and whether it should be placed before or after the activation [sources here], and so the tests were rerun with this swap implemented. 
+In doing so, the training time and accuracy were improved significantly
+
+Validation Loss: 0.50
+Validation Accuracy: 0.93
+Time: $\sim216$ seconds
+
+suggesting better generalisation at test time.
