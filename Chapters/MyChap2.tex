@@ -90,6 +90,9 @@ MFCC extraction therefore function as a feature selection technique that reduces
 	\label{mfccs_speech_orno}
 \end{figure}
 
+\subsection{Processing Time}
+The MFCC extraction was one of the more costly processes in this method, but not prohibitively so. To generate the coefficients for approximately 47 minutes of audio took on average 45.4 seconds, equating to around 1 second per minute of audio.
+
 \section{Subtitles}
 The MFCC’s provide the descriptive variables upon which to make predictions, and the objective variable is defined to be the presence of subtitles. This setup was chosen to enable the model to provide synchronisation using solely information contained in the srt file: since this subtitle synchroniser is aimed principally at cinemagoers, it is assumed that the original audio/video is unavailable, but it is assumed that an srt file is accessible. These are readily available on the internet for most films and are small (essentially text) files and so networking and device requirements would be minimal. They contain a series of entries made up of a start time, stop time, and a string to be presented on the screen at these times. 
 
@@ -102,7 +105,7 @@ In order to generate the subtitle array, which has length equal to the number of
 	\item An array of zeros, pb\_array, is generated with columns for an index, start time and binary subtitle value to indicate presence of subtitles. It is of equal length to the number of frames required.
 	\item The 2 arrays, pb\_array and subs\_array, are parsed concurrently, with the frame times of pb\_array checked to see if they lie within a times entry, and the value changed to 1 from 0 if true.
 \end{itemize}
-
+\newpage
 \subsection{Pseudocode}
 \begin{algorithm}
 	\caption{pb\_array\_fill}\label{euclid}
@@ -135,6 +138,4 @@ In order to generate the subtitle array, which has length equal to the number of
 	\end{algorithmic}
 \end{algorithm}
 
-This method was evaluated with 5 trial runs on 59:18 minutes of audio, equating to 355,830 MFCC samples and took on average 12.03 seconds. This is a little longer than would be desired in practice but is not excessively long. In addition it is efficient in that it parses over the arrays only once.
-
-This outputs a vector with length equal to number of MFCC frames, filled with binary values indicating presence of subtitles. This provides the objective feature to predict.
+This method was evaluated with 5 trial runs on 59:18 minutes of audio, equating to 355,830 MFCC samples and took on average 12.03 seconds. This is a little longer than would be desired in practice but is not excessively long. In addition it is efficient in that it parses over the arrays only once. The output is a vector with length equal to number of MFCC frames, filled with binary values indicating presence of subtitles. This provides the objective feature to predict.

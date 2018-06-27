@@ -7,33 +7,31 @@
 %----------------------------------------------------------------------------------------
 
 \section{Learner Architecture}
-The network architecture implemented by Sabater was used as a starting point. This used convolutions in 1d with kernel size 3, where the filter is initially applied over the MFCC features. This process is identical to the more traditional 2d convolutions in computer vision, except the kernel is a vector rather than a square/array. 3 filters were used.
+The network architecture implemented by Sabater was used as a starting point. This used convolutions in 1d with kernel size 3, where the filter is initially applied over the MFCC features. This process is identical to the more traditional 2d convolutions in computer vision, except the kernel is a vector rather than an array. 3 filters were used.
 \begin{wrapfigure}{r}{0.3\textwidth} 
 	\includegraphics[width=0.3\textwidth]{1dconv_nopad}
 	\caption{Convolutions in 1d \cite{catalunya_2017}}
 	\label{1dconv}
 \end{wrapfigure}
-This architecture associates adjacent MFCC’s with each other in a hierarchical fashion. It could be hypothesised that during speech the changes in pitch/frequency occur in a consecutive fashion, with sudden changes from different parts of the spectrum unlikely, and so this information can be compressed/summarised… No padding was used, and although this means central coefficients are over represented in relation to those at the edges, it could also be hypothesised that these occur less often and, being at the edges of the frequency spectrum, are less critical to comprehension, thus features can be reduced further. As in 2d convolutions, the exact nature of the filters are left to be learned during the optimisation (back propogation?) process. 12 filters in 2 convolution layers gives 24 parameters to be learned.
-The 1D convolutions output tensors of shape (V-(F-1),NF ), V is the feature vector size, NF is number of filters. To produce the correct shape for the dense layer, the tensors are flattened out to feature vectors again. In the original implementation by Sabater, he applies the ReLu activation function at this point, before applying batch normalisation and dropout. These layers are then repeated until the output neuron with a sigmoid activation function. 
+This architecture associates adjacent MFCC’s with each other in a hierarchical fashion. It could be hypothesised that during speech the changes in pitch/frequency occur in a consecutive fashion, with sudden changes from different parts of the spectrum unlikely, and so this information can be compressed with the network learning the best means of doing so. No padding was used, and although this means central coefficients are over represented in relation to those at the edges, it could also be hypothesised that these occur less often and, being at the edges of the frequency spectrum, are less critical to comprehension, thus features can be reduced further. As in 2d convolutions, the exact nature of the filters are left to be learned during the optimisation (back propogation?) process. 12 filters in 2 convolution layers gives 24 parameters to be learned.
+The 1D convolutions output tensors of shape ($V-(F-1),N_{F}$ ), where $V$ is the feature vector size, $F$ is the filter size and $N_{F}$ is number of filters. To produce the correct shape for the dense layer, the tensors are flattened out to feature vectors again. The ReLu activation function is applied at this point, before applying batch normalisation and dropout. These layers are then repeated once before the output, which is activated with a sigmoid activation function. 
 %----------------------------------------------------------------------------------------
 \subsection{Activation Functions}
-The activation functions provide the mathematical function that emulates the nonlinear, biphasal response in the brain. For all the internal layers the ReLU function was used as this is less computationally expensive than the sigmoid where all neurons are guaranteed to fire at all times, and the use of a dropout layer removes these dying neurons to give a sparser output. 
+The activation functions provide the mathematical function that emulates the nonlinear, biphasal response in the brain. For all the internal layers, the ReLU function was used as this is less computationally expensive than the sigmoid where all neurons are guaranteed to fire at all times, and the use of a dropout layer removes any dying neurons to give a sparser output. 
 The output activation function was a sigmoid, which is well suited for classification and ensures that all outputs from the final dense layer will be evaluated.
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[height=\textheight]{model_plot_normswap}
-	\caption{Model Architecture}
-	\label{architecture}
+	\includegraphics[height=\textheight]{model_plot}
+	\caption{Initial Model Architecture}
+	\label{init_architecture}
 \end{figure}
 
 \subsection{Batch Normalisation}
-I didn’t normalise the features directly since this relies on having the full dataset and when deployed it would not be possible to do this since we are only granted access to the dataset incrementally.
-In order to learn, it is most effective when the training and test data have the same distribution. However, at each layer the outputs retain this relation only weakly due to the non-linearity of the activation functions, a process known as “internal covariance shift”, and so at each layer the new distribution must be relearnt. In addition, due to the flattening of the sigmoid function at larger values, the optimisation process slows as the gradient varies less over fixed learning rates. This can be compensated for by renormalising after every layer, but In order to normalise, the mean and variance is computed across the whole training set, but this is expensive and “not differentiable everywhere”. Instead, batchnorm stochastically computes the mean and variance over much smaller overlapping batches. This can be seen as having a regularising effect as the outputs through each layer are now dependent on what other examples were present in that batch via the mean and variation with which it is normalised rather than being processed independently. Since this process can be done several times, a single example can be related to many other examples. At test time, the learned features of the gaussian are fixed and applied to the data to give deterministic responses.
-In order to compensate for this, the outputs can be normalised to a gaussian with zero mean and unit variance across each of the dimensions, output xhat. In order to ensure that the activation functions are thus not constrained to this gaussian distribution, a further transformation is made: $y = \gamma  \hat{x} + \beta$, and incorporate these new parameters into the learning process to be identified via backpropogation, hence different distributions can be inferred directly.
+Although normalisation of the features is associated with increased performance and reduced training times, the features were not normalised directly since this relies on having access to the full dataset and when deployed it would not be possible to do this since we are only granted access incrementally. However, this was compensated for by application of the batch normalisation layer. In order to learn, it is most effective when the training and test data have the same distribution. However, at each layer the outputs retain this relation only weakly due to the non-linearity of the activation functions, a process known as internal covariance shift, and so at each layer the new distribution must be relearnt. In addition, due to the flattening of the sigmoid function at larger values, the optimisation process slows as the gradient varies less over fixed learning rates. This can be compensated for by renormalising after every layer, but in order to do so the mean and variance must be computed across the whole training set: this is expensive and “not differentiable everywhere”. Instead, batchnorm stochastically computes the mean and variance over much smaller overlapping batches and the outputs then normalised to a gaussian with zero mean and unit variance across each of the dimensions, output $\hat{x}$. In order to ensure that the activation functions are thus not constrained to this gaussian distribution, a further transformation is made: $y = \gamma  \hat{x} + \beta$, and these new parameters are incorporated into the learning process to be identified via backpropagation, hence different distributions can be inferred directly. This can be seen as having a regularising effect as the outputs through each layer are now dependent on what other examples were present in that batch via the mean and variation with which it is normalised rather than being processed independently. Since this process can be applied at each layer of the network, a single example can be related to many other examples. At test time, the learned features of the gaussian are fixed and applied to the data to give deterministic responses.
 
 \subsection{Dropout}
-Dropout is one method of limiting overtraining and the interdependence of neurons within layers. Nodes are defined to be active in a stochastic function as determined by a probability parameter. Hence when training, every time a sample is propagated through the network a random subset, in proportion to the probability parameter, of the neurons will not produce any output. Hence, later layers cannot depend on the presence of all inputs and reduces the tendency of neurons to co-adapt, activating in similar ways to other neurons and hence not providing additional information. In this way, a much larger set of network configurations is randomly sampled, and hence can be viewed as operating as an ensemble method for 1 hidden layer, different for more than 1.. All architectures share weights – whenever we use a hidden unit its got the same weights as it has in other architectures. Extreme form of bagging – very large number of architectures trained on just 1 sample. Sharing of weights means that every model is very strongly regularised – the weights learned from 1 architecture are stored before the architecture is sampled again. A dropout value of 0.2 was applied.
+Dropout is one method of limiting overtraining and the interdependence of neurons within layers. Nodes are defined to be active in a stochastic function as determined by a probability parameter. Hence when training, every time a sample is propagated through the network a random subset, in proportion to the probability parameter, of the neurons will not produce any output. Hence, later layers cannot depend on the presence of all inputs and this reduces the tendency of neurons to co-adapt, activating in similar ways to other neurons and providing no additional information. In this way, a much larger set of network configurations is randomly sampled, and hence can be viewed as operating as an ensemble method for 1 hidden layer. All architectures share weights – whenever we use a hidden unit its got the same weights as it has in other architectures. Extreme form of bagging – very large number of architectures trained on just 1 sample. Sharing of weights means that every model is very strongly regularised – the weights learned from 1 architecture are stored before the architecture is sampled again. A dropout value of 0.2 was applied.
 
 \section{Tuning}
 Once the general neural network architecture was decided, there were still a range of hyperparameters to tune. In order to evaluate the effect of different optimisers, batch size and number of epochs, the hyperas package was used. This enables models with different parameters to be evaluated and the optimal parameters identified using grid search cross validation and an optimisation algorithm, Tree of Parzen Estimators (TPE) was used here. http://hyperopt.github.io/hyperopt/.
@@ -54,25 +52,54 @@ Interestingly the validation loss is less than the training loss..
 The validation results gave [0.81, 0.50] [accuracy, loss], which emulated closely the training results. This indicated that an hour of audio should be sufficient, but to ensure success, a full feature film was used for training.
 
 \section{Test Time}
+\subsection{Clean Data}
 Prior to tuning, the model achieved respectable results Validation Loss: 0.47
-Validation Accuracy: 0.76
-Time:  $\sim103$ seconds
+Validation Accuracy: 0.76. Time:  $\sim103$ seconds
 
 After tuning, these results were improved slightly:
-Validation Loss: 0.48
-Validation Accuracy: 0.81
+Validation Loss: 0.48, Validation Accuracy: 0.81
 
-The model was then evaluated on a full feature film, Goldstone and produced similar results:
-
-Validation Loss: 0.49
-Validation Accuracy: 0.84
+The model was then evaluated on a full feature film, Goldstone and produced similar results: Validation Loss: 0.49, Validation Accuracy: 0.84
 Time: $\sim259$ seconds
 
 However, there is some debate over the position of the batch normalisation layer and whether it should be placed before or after the activation [sources here], and so the tests were rerun with this swap implemented. 
-In doing so, the training time and accuracy were improved significantly
+In doing so, the training time and accuracy were improved significantly.
 
-Validation Loss: 0.50
-Validation Accuracy: 0.93
-Time: $\sim216$ seconds
+\begin{figure}[h]
+	\centering
+	\includegraphics[height=\textheight]{model_plot_normswap}
+	\caption{Model Architecture with batch normalisation and activation layers swapped.}
+	\label{swap_architecture}
+\end{figure}
 
-suggesting better generalisation at test time.
+Validation Loss: 0.50, validation Accuracy: 0.93, time: $\sim216$ seconds, suggesting better generalisation at test time.
+
+\subsection{Noisy Data}
+A live recording of a Game of Thrones episode was made in order to produce data that that would more closely emulate the real-world setting. To do so, an episode was played and an mp3 recording made at the same from the same laptop, with care taken to ensure that background noise was present, including speech. The episode recorded was one on which the learner had been evaluated to provide direct comparison between noisy and clean data. One problem encountered was that it was difficult to identify exactly where the film began in the recording, with an approximate uncertainty of $\pm$ 1s, and so it was not obvious whether the predicted array and true array were aligned. Although this is to be expected in deployment, in testing it would be preferential to know that the value being tested against for accuracy corresponds to the actual predictors. Nonetheless, an accuracy of 76\% was achieved on this noisy set.
+
+\subsection{Confusion matrices}
+Unfortunately, when we examine the confusion matrices for the different datasets we see that the accuracies are less impressive than first appears, possibly due to the unbalanced datasets.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{CM_gots7e1.png}
+	\caption{The equal proportion with which subtitles are predicted across both true labels suggests a fixed ratio is being applied to the data.}
+	\label{cms7e1}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{CM_gots7e1_noisy.png}
+	\caption{Interestingly, the noisy dataset performs better at test time, with greater accuracy in predicting the features in both classes.}
+	\label{cms7e1noise}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{CM_Goldstone.png}
+	\caption{This shows better results than on the clean Games of Thrones episode but is still less than the noisy dataset.}
+	\label{cmsgoldstone}
+\end{figure}
+
+
+

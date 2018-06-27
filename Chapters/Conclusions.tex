@@ -1,0 +1,20 @@
+% Chapter Template
+
+\chapter{Conclusions} % Main chapter title
+
+\label{ChapterX} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+\subsection{Preprocessing}
+An efficient means of extracting features from subtitle files has been combined with traditional speech centred feature extraction in order to generate data for training easily.
+
+\subsection{Learner}
+A learner has been trained that can identify speech with approximately 80\% accuracy in a range of conditions. This is less than commercial speech detectors which approach 100\% accuracy, but the conditions generally involve much less noise where the speaker is emphasised. The results could possible be improved by appending the log energy to the feature vector, using padding when taking convolutions to ensure all features have equal representation, using noise reduction techniques. Alternative learning frameworks could be evaluated to ensure the highest accuracy possible is attained.
+
+\subsection{Array Matching}
+Given a sufficiently accurate model, a means of matching predictions to a true array in real time has been proposed. This attempts to utilise additional information peculiar to the setting of the cinema to restrict the search space. This is effective assuming insignificant speech noise from the surroundings, but requires additional testing in order to identify the most effective sample length to match with when speech is present in the film.
+
+
+
